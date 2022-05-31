@@ -1,6 +1,5 @@
 import sys
-from math import pow
-from ecc import error_correction
+from ecc import error_correction, pow
 
 # submodes mappings where idx:ascii_value
 # control values are strings, where L/S for latch/shift, a/L/m/p for submodes

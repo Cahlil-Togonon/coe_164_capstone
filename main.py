@@ -27,9 +27,9 @@ def decoder(data_SCV):
             shift = None
         if isinstance(code, str):                   # check if string (control value)
             if code[0] == 'L':                      # if string starts with 'L'
-                mode = code[1]                      # change mode to the second letter (submode)
+                mode = code[1]                      # change mode to the submode (second letter)
             elif code[0] == 'S':                    # if string starts with 'S'
-                shift = code[1]                     # change shift to the second letter (submode)
+                shift = code[1]                     # change shift to the submode (second letter)
         else:
             decoded += chr(code)                    # concatenate decoded string with decoded ascii symbol using chr(ascii_value)
     

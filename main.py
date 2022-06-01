@@ -14,7 +14,7 @@ def decoder(data_SCV):
     symbol_SCV = []
     for val in data_SCV:                            # change data to H and L values 
         symbol_SCV += [(val // 30) % 30, val % 30]          # *remember to remove mod from H
-                                                            # (debugging for values > 900 because no error correction)
+                                                            # (debugging for values > 900 because no error correction yet)
     if symbol_SCV[-1] == 29: symbol_SCV.pop()       # remove last value if 29
 
     shift = None                                    # shift flag

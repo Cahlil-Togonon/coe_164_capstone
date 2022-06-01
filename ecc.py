@@ -39,7 +39,7 @@ def syndromes(t,SCV):                       # calculate syndromes given t and th
         S.append(Si)
     return S_sum, S                         # return syndromes sum, syndromes vector
 
-def BM_algo(S):                             # BM algo as implemented from whiteboard notes (missing 0 value at x^3 for Case#3)
+def BM_algorithm(S):                        # BM algo as implemented from whiteboard notes (missing 0 value at x^3 for Case#3)
     Lx, Lpx = [1],[1]                       # initialize L(x) = Lp(x) = 1
     ne,dp,m = 0,1,1
     for i in range(len(S)):
@@ -55,7 +55,7 @@ def BM_algo(S):                             # BM algo as implemented from whiteb
                 _,_,t = EEA(929,dp)         # get inverse of dp -> t
                 val = mult(d,t)             # mult inverse of dp to d
                 sLpx[k] = mult(sLpx[k],val) # mult with Lpx[k]
-                if k < len(Lx):                 # L(x) = L(x) - (d/dp) x^m Lp(x)
+                if k < len(Lx):             # L(x) = L(x) - (d/dp) x^m Lp(x)
                     Lx[k] = sum(Lx[k],-sLpx[k])
                 else:
                     Lx += [-sLpx[k] % 929]
@@ -124,7 +124,7 @@ def error_correction(ecc_count,SCV):
     # if not S_sum:
     #     return 0, msg_SCV
 
-    num_errors, error_locator = BM_algo(S)                      # get error locator and number of errors using Berlekamp-Massey Algorithm
+    num_errors, error_locator = BM_algorithm(S)                 # get error locator and number of errors using Berlekamp-Massey Algorithm
     print("Error Locator:",error_locator)                       # for debugging
 
     elp_roots, roots_idx = find_roots(error_locator)            # get elp_roots, root_idx

@@ -138,6 +138,11 @@ def error_poly(S,error_locator,roots,ne):                   # calculate error po
         e_coeffs.append(mult(-Ox_val,dL_val))               # e_coeff = -(Ox_val/dL_val)
     return e_coeffs                                         # return error polynomial
 
+def correct_message(SCV,e_coeffs,roots_idx):                # Compute true message
+    corrected_SCV = SCV
+    # Subtract SCV with e_coeffs at corresponding indices
+    return corrected_SCV
+
 ################# Main function #######################
 
 def error_correction(ecc_count,SCV):
@@ -159,6 +164,6 @@ def error_correction(ecc_count,SCV):
     e_coeffs = error_poly(S,error_locator,roots_idx,num_errors) # get e_coeffs polynomial
     print("E_coeffs:",e_coeffs)                                 # for debugging
 
-    # subtract SCV with e_coeffs part
+    corrected_SCV = correct_message(SCV,e_coeffs,roots_idx)     # get true message
 
-    return num_errors,SCV                                       # return number of errors, corrected SCV
+    return num_errors,corrected_SCV                             # return number of errors, corrected SCV

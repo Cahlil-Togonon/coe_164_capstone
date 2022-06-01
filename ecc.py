@@ -1,5 +1,4 @@
 import copy
-import numpy
 
 ################ Helper functions ######################
 
@@ -40,7 +39,7 @@ def syndromes(t,SCV):                       # calculate syndromes given t and th
         S.append(Si)
     return S_sum, S                         # return syndromes sum, syndromes vector
 
-def BM_algo(S):                             # BM algo as implemented from whiteboard notes (shows wrong values for test case #3)
+def BM_algo(S):                             # BM algo as implemented from whiteboard notes (missing 0 value at x^3 for Case#3)
     Lx, Lpx = [1],[1]                       # initialize L(x) = Lp(x) = 1
     ne,dp,m = 0,1,1
     for i in range(len(S)):
@@ -51,13 +50,15 @@ def BM_algo(S):                             # BM algo as implemented from whiteb
             m += 1
         else:
             temp = copy.copy(Lx)            # temp copy old L(x)
-            Lx = Lx + [0]*m                 # pad some zeroes for calculation
-            Lpx = [0]*m + Lpx               # shift Lp(x) by x^m
-            for k in range(len(Lpx)):
+            sLpx = [0]*m + Lpx              # shift Lp(x) by x^m
+            for k in range(len(sLpx)):
                 _,_,t = EEA(929,dp)         # get inverse of dp -> t
                 val = mult(d,t)             # mult inverse of dp to d
-                val = mult(Lpx[k],val)      # mult with Lpx[k]
-                Lx[k] = sum(Lx[k],-val)     # L(x) = L(x) - (d/dp) x^m Lp(x)
+                sLpx[k] = mult(sLpx[k],val) # mult with Lpx[k]
+                if k < len(Lx):                 # L(x) = L(x) - (d/dp) x^m Lp(x)
+                    Lx[k] = sum(Lx[k],-sLpx[k])
+                else:
+                    Lx += [-sLpx[k] % 929]
             if 2*ne <= i:
                 Lpx = temp
                 ne = i + 1 - ne
@@ -66,36 +67,6 @@ def BM_algo(S):                             # BM algo as implemented from whiteb
             else:
                 m += 1
     return ne,Lx                            # return number of errors, L(x)
-
-def berlekamp_massey_algorithm(data):       # taken from https://gist.github.com/StuartGordonReid/a514ed478d42eca49568
-    n = len(data)                           # correct values for test case #3 but missing 0 (at x^3)
-    C = numpy.zeros(n)                      # nearly the same code, not sure where it is different
-    B = numpy.zeros(n)
-    C[0], B[0] = 1, 1
-    l, m, b, i = 0, -1, 1, 0
-    while i < n:
-        V = data[(i - l):i]
-        V = V[::-1]
-        CC = C[1:l + 1]
-        d = (data[i] + numpy.dot(V, CC))
-        if d != 0:
-            temp = copy.deepcopy(C)
-            P = numpy.zeros(n)
-            for j in range(0,l):
-                val = mult(B[j],d)
-                _,_,t = EEA(929,b)
-                val = mult(val,t)
-                P[j + i - m] = - val
-            for k in range(n):
-                C[k] = sum(C[k],P[k])
-            # C = (C + P)
-            if l <= 0.5 * i:
-                l = i + 1 - l
-                B = temp
-                b = d
-                m = i
-        i += 1
-    return l,C                              # return number of errors, L(x)
 
 def find_roots(Lx):                         # find roots of L(x) = 1 + L0 x^1 + ...
     elp_roots = []
@@ -122,7 +93,7 @@ def error_poly(S,error_locator,roots,ne):                   # calculate error po
     
     Ox = [0]*(ne+1)                                         # initialize O(x) = 0 + 0 + ... ne+1 times (basically mod ne)
     for i in range(len(Ox)):                                # O(x) = S(x)L(x) mod ne =>
-        for j in range(len(Ox)):                            # is like combinatorics: Ox[i+j] += S[i] * L[j] until ne+1
+        for j in range(len(Ox)):                            # is like combinatorics of i and j: Ox[i+j] += S[i] * L[j] until ne+1
             if (i+j) < len(Ox):
                 Ox[i+j] = sum(Ox[i+j],mult(S[i],error_locator[j]))
 
@@ -154,7 +125,6 @@ def error_correction(ecc_count,SCV):
     #     return 0, msg_SCV
 
     num_errors, error_locator = BM_algo(S)                      # get error locator and number of errors using Berlekamp-Massey Algorithm
-    # num_errors, error_locator = berlekamp_massey_algorithm(S) # **other implementation
     print("Error Locator:",error_locator)                       # for debugging
 
     elp_roots, roots_idx = find_roots(error_locator)            # get elp_roots, root_idx

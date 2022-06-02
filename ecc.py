@@ -68,72 +68,76 @@ def BM_algorithm(S):                        # BM algo as implemented from whiteb
                 m += 1
     return ne,Lx                            # return number of errors, L(x)
 
-def find_roots(Lx):                         # find roots of L(x) = 1 + L0 x^1 + ...
-    elp_roots = []
-    roots_idx = []
-    for x in range(929):                    # evaluate L(x) at every a^x value (brute force method)
-        val = 0
-        for i in range(len(Lx)):            # val = Summation of Lx[i] * a^(x*i)
-            val = sum(val,mult(Lx[i],pow(3,mult(x,i))))
-        if val == 0:
-            elp_roots.append(x)             # if val is 0, then x is an elp_root
-    
-    for i in elp_roots:                     # get root_idx per elp_root
-        _,_,t = EEA(929,pow(3,i))           # get inverse of elp_root
-        if t < 0:                           # ex. [925] -> [27]
-            t += 929                        # not sure how [a^-925] -> [a^3], where 3 should be the indices we need***
-        roots_idx.append(t)                 
-    return elp_roots, roots_idx             # return elp_roots, root_idx
+def find_roots(Lx):                         # find roots of L(x) = 1 + L0 x^1 + ... using Chien Search
+    Le = copy.deepcopy(Lx)                  # copy coeffs of L(x) to Le
+    Tx = [pow(3,i) for i in range(len(Lx))] # calculate template polynomial T(x) = 1 + a^1 + a^2 + ...
+    root_idxs = []                          # the index is the exponent of the root a^x
+    root_vals = []                          # the value is a^x itself
+    root_no_inv = []
+    for i in range(0,928):
+        elp_val = 0
+        for j in range(len(Le)):            # elp_val = Summation of the current Le
+            elp_val = sum(elp_val,Le[j])
+            Le[j] *= Tx[j]                  # update the values of Le *= Tx as we sweep
+        if elp_val == 0:                    # then i is root
+            inv = -i % 928                  # get inverse of i (*not sure why mod 928 and not 929)
+            root_idxs.append(inv)           # inverse is the exponent/index
+            root_vals.append(pow(3,inv))    # evaluate raw value of a^inv
+            root_no_inv.append(pow(3,i))    # also get the non-inverted root values
+    return root_idxs, root_vals, root_no_inv        # return root indices, raw root values
 
-def error_poly(S,error_locator,roots,ne):                   # calculate error polynomial from error locator
+def error_poly(S,error_locator,root_no_inv,ne):             # calculate error polynomial from error locator
     dL = []
     for i in range(1,len(error_locator)):                   # get the derivate of L(x) -> dL(x)
         dL.append(mult(error_locator[i],i))                 # L(x) = 1 + L1 x^1 + L2 x^2 + ... = 1 + L[i] x^i
                                                             # dL(x) = L1*1 + L2*2 * x + ...    = L[i]*i x^(i-1)
     
-    Ox = [0]*(ne+1)                                         # initialize O(x) = 0 + 0 + ... ne+1 times (basically mod ne)
-    for i in range(len(Ox)):                                # O(x) = S(x)L(x) mod ne =>
-        for j in range(len(Ox)):                            # is like combinatorics of i and j: Ox[i+j] += S[i] * L[j] until ne+1
+    Ox = [0]*(ne)                                           # initialize O(x) = 0 + 0 + ... ne times (basically mod ne)
+    for i in range(len(Ox)):                                # O(x) = S(x)L(x) mod ne => FOIL method
+        for j in range(len(Ox)):                            # is like combinatorics of i and j: Ox[i+j] += S[i] * L[j] until ne
             if (i+j) < len(Ox):
                 Ox[i+j] = sum(Ox[i+j],mult(S[i],error_locator[j]))
 
     e_coeffs = []
-    for root in roots:                                      # for every root
+    for root in root_no_inv:                                # for every root value
         Ox_val = 0
         dL_val = 0
         for i in range(len(Ox)):                            # calculate Ox_val = O(root)
-            Ox_val = sum(Ox_val,mult(Ox[i],pow(root,i)))    # Ox_val = Summation of O[i] * a^(root*i)
+            Ox_val = sum(Ox_val,mult(Ox[i],pow(root,i)))    # Ox_val = Summation of O[i] * root^i
         for i in range(len(dL)):                            # calculate dL_val = dL(root)
-            dL_val = sum(dL_val,mult(dL[i],pow(root,i)))    # dL_val = Summation of dL[i] * a^(root*i)
+            dL_val = sum(dL_val,mult(dL[i],pow(root,i)))    # dL_val = Summation of dL[i] * root^i
         _,_,dL_val = EEA(929,dL_val)                        # inverse dL_val
         e_coeffs.append(mult(-Ox_val,dL_val))               # e_coeff = -(Ox_val/dL_val)
     return e_coeffs                                         # return error polynomial
 
-def correct_message(SCV,e_coeffs,roots_idx):                # Compute true message
-    corrected_SCV = SCV
-    # Subtract SCV with e_coeffs at corresponding indices
-    return corrected_SCV
+def correct_message(SCV,e_coeffs,root_idxs):                # Compute true message
+    corrected_SCV = copy.deepcopy(SCV)
+    N = len(corrected_SCV)                                  # get length of SCV
+    for i in range(len(root_idxs)):
+        idx = N - root_idxs[i] - 1                          # index to correct is from the right starting from index 0
+        corrected_SCV[idx] = sum(corrected_SCV[idx],-e_coeffs[i])   # subtract msg with e(x)
+    return corrected_SCV                                    # return corrected SCV
 
 ################# Main function #######################
 
 def error_correction(ecc_count,SCV):
     t = int(ecc_count / 2)
     
-    S_sum, S = syndromes(t,SCV)                                 # get syndromes
-    print("Syndromes:",S)                                       # for debugging
+    S_sum, S = syndromes(t,SCV)                                     # get syndromes
+    print("Syndromes:",S)                                           # for debugging
     # if not S_sum:
     #     return 0, msg_SCV
 
-    num_errors, error_locator = BM_algorithm(S)                 # get error locator and number of errors using Berlekamp-Massey Algorithm
-    print("Error Locator:",error_locator)                       # for debugging
+    num_errors, error_locator = BM_algorithm(S)                     # get error locator and number of errors using Berlekamp-Massey Algorithm
+    print("Error Locator:",error_locator)                           # for debugging
 
-    elp_roots, roots_idx = find_roots(error_locator)            # get elp_roots, root_idx
-    print("elp_roots:",elp_roots)                               # for debugging
-    print("roots_idx:",roots_idx)                               # for debugging
+    root_idxs, root_vals, root_no_inv = find_roots(error_locator)   # get root_idxs, root_vals
+    print("root_idxs:",root_idxs)                                   # for debugging
+    print("root_vals:",root_vals)                                   # for debugging
 
-    e_coeffs = error_poly(S,error_locator,roots_idx,num_errors) # get e_coeffs polynomial
-    print("E_coeffs:",e_coeffs)                                 # for debugging
+    e_coeffs = error_poly(S,error_locator,root_no_inv,num_errors)   # get e_coeffs polynomial
+    print("E_coeffs:",e_coeffs)                                     # for debugging
 
-    corrected_SCV = correct_message(SCV,e_coeffs,roots_idx)     # get true message
+    corrected_SCV = correct_message(SCV,e_coeffs,root_idxs)         # get true message
 
-    return num_errors,corrected_SCV                             # return number of errors, corrected SCV
+    return num_errors,corrected_SCV                                 # return number of errors, corrected SCV

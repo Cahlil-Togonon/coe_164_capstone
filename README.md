@@ -8,4 +8,5 @@
 
 `python main.py input.txt output.txt`
 
-temp fix for OJ: bounds (using modulo N) for msg indexing in `correct_message()`
+status:
+correct ecc, wrong decoder for OJ

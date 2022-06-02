@@ -16,21 +16,34 @@ def decoder(data_SCV):
         symbol_SCV += [(val // 30), val % 30]       # H = val//30, L = val % 30
     if symbol_SCV[-1] == 29: symbol_SCV.pop()       # remove last value if 29
 
-    shift = None                                    # shift flag
+    shift = False                                   
+    wasShift = False
     mode = 'a'                                      # start at alpha submode
+    prevmode = 'a'
+    tempmode = 'a'
+    
     for val in symbol_SCV:
+        if shift:                                   # if shift, change mode to temporary mode
+            wasShift = True             
+            mode = tempmode
+            
         code = codebook[mode][val]                  # get the ascii_value or control value
-        if shift:
-            code = codebook[shift][val]             # if shift, get the shift's ascii_value instead
-            shift = None
+        
         if isinstance(code, str):                   # check if string (control value)
             if code[0] == 'L':                      # if string starts with 'L'
                 mode = code[1]                      # change mode to the submode (second letter)
             elif code[0] == 'S':                    # if string starts with 'S'
-                shift = code[1]                     # change shift to the submode (second letter)
+                prevmode = mode
+                tempmode = code[1]                  # change temporary mode to the submode (second letter)
+                shift = True       
         else:
             decoded += chr(code)                    # concatenate decoded string with decoded ascii symbol using chr(ascii_value)
-    
+        
+        if wasShift:                                    
+            mode = prevmode                         # change back to previous mode
+            wasShift = False
+            shift = False
+            
     return decoded                                  # return decoded message
 
 if __name__ == '__main__':

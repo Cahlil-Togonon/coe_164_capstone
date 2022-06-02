@@ -34,12 +34,12 @@ def syndromes(t,SCV):                       # calculate syndromes given t and th
     for i in range(1,2*t+1):                # calculate syndromes
         Si = 0
         for j in range(len(SCV)):           # Si = Summation of SCV[j]*x^(n-j), where x = a^i, a = 3
-            Si = sum(Si,mult(SCV[j],pow(3,mult(i,len(SCV)-1-j))))
+            Si = sum(Si,mult(SCV[j],pow(3,i*(len(SCV)-1-j))))
         S_sum = sum(S_sum,Si)               # S_sum = Summation(Si)
         S.append(Si)
     return S_sum, S                         # return syndromes sum, syndromes vector
 
-def BM_algorithm(S):                        # BM algo as implemented from whiteboard notes (missing 0 value at x^3 for Case#3)
+def BM_algorithm(S):                        # BM algo as implemented from whiteboard notes
     Lx, Lpx = [1],[1]                       # initialize L(x) = Lp(x) = 1
     ne,dp,m = 0,1,1
     for i in range(len(S)):
@@ -114,7 +114,7 @@ def correct_message(SCV,e_coeffs,root_idxs):                # Compute true messa
     corrected_SCV = copy.deepcopy(SCV)
     N = len(corrected_SCV)                                  # get length of SCV
     for i in range(len(root_idxs)):
-        idx = N - (root_idxs[i]%(N)) - 1                          # index to correct is from the right starting from index 0
+        idx = N - root_idxs[i] - 1                          # index to correct is from the right starting from index 0
         corrected_SCV[idx] = sum(corrected_SCV[idx],-e_coeffs[i])   # subtract msg with e(x)
     return corrected_SCV                                    # return corrected SCV
 

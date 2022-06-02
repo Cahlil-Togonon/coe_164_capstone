@@ -114,7 +114,7 @@ def correct_message(SCV,e_coeffs,root_idxs):                # Compute true messa
     corrected_SCV = copy.deepcopy(SCV)
     N = len(corrected_SCV)                                  # get length of SCV
     for i in range(len(root_idxs)):
-        idx = N - root_idxs[i] - 1                          # index to correct is from the right starting from index 0
+        idx = N - (root_idxs[i]%(N)) - 1                          # index to correct is from the right starting from index 0
         corrected_SCV[idx] = sum(corrected_SCV[idx],-e_coeffs[i])   # subtract msg with e(x)
     return corrected_SCV                                    # return corrected SCV
 

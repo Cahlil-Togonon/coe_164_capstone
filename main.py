@@ -1,5 +1,5 @@
 import sys
-from ecc import error_correction, pow
+from ecc import error_correction
 
 # submodes mappings where idx:ascii_value
 # control values are strings, where L/S for latch/shift, a/L/m/p for submodes
@@ -13,8 +13,7 @@ def decoder(data_SCV):
     decoded = ""
     symbol_SCV = []
     for val in data_SCV:                            # change data to H and L values 
-        symbol_SCV += [(val // 30) % 30, val % 30]          # *remember to remove mod from H
-                                                            # (debugging for values > 900 because no error correction yet)
+        symbol_SCV += [(val // 30), val % 30]       # H = val//30, L = val % 30
     if symbol_SCV[-1] == 29: symbol_SCV.pop()       # remove last value if 29
 
     shift = None                                    # shift flag
@@ -45,7 +44,7 @@ if __name__ == '__main__':
         ecc_level,N = [int(i) for i in input_stream.pop(0).split()]     # get E (ecc_level) and N
         SCV = [int(i) for i in input_stream.pop(0).split()]             # get SCV array
 
-        ecc_count = int(pow(2,ecc_level+1))                             # calculate ecc_count
+        ecc_count = int(2**(ecc_level+1))                               # ecc_count = 2^(ecc_level + 1)
         
         print(f"Case #{t+1}:") # for debugging purposes
         num_errors,corrected_SCV = error_correction(ecc_count,SCV)      # call error correction

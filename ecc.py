@@ -2,7 +2,7 @@ import copy
 
 ################ Helper functions ######################
 
-def pow(base,power):        # power with mod 929 every step
+def pow(base,power):                # power with mod 929 every step
     result = 1
     while power:
         result *= base
@@ -10,28 +10,28 @@ def pow(base,power):        # power with mod 929 every step
         power -= 1
     return result
 
-def mult(a,b):              # mult values with mod 929
+def mult(a,b):                      # mult values with mod 929
     return (a*b) % 929
 
-def sum(a,b):               # sum values with mod 929
+def sum(a,b):                       # sum values with mod 929
     return (a+b) % 929
 
-def updateCoeff(a,b,s,t):   # for Extended Euclidean Algorithm 
+def updateCoeff(a,b,s,t):           # for Extended Euclidean Algorithm 
     return (t-(b//a)*s, s)
 
-def EEA(a,b):               # Extended Euclidean Algorithm for division
-    if a == 0:
+def EEA(a,b):                       # Extended Euclidean Algorithm for division
+    if a == 0:                      # base case
         return b,0,1
-    gcd,s1,t1 = EEA(b % a, a)
-    s,t = updateCoeff(a,b,s1,t1)
-    return gcd,s,t
+    gcd,s1,t1 = EEA(b % a, a)       # recursive call
+    s,t = updateCoeff(a,b,s1,t1)    # update s and t
+    return gcd,s,t                  # t can be used as the inverse of a number in a finite field
 
 ######### Actual Error Correction functions ############
 
 def syndromes(t,SCV):                       # calculate syndromes given t and the SCV
     S_sum = 0                               # sum of all syndromes
-    S = []                                  # Syndromes vector
-    for i in range(1,2*t+1):                # calculate syndromes
+    S = []                                  # syndromes vector
+    for i in range(1,2*t+1):                # for i = 1 to 2t or E (ecc_count)
         Si = 0
         for j in range(len(SCV)):           # Si = Summation of SCV[j]*x^(n-j), where x = a^i, a = 3
             Si = sum(Si,mult(SCV[j],pow(3,i*(len(SCV)-1-j))))
@@ -41,10 +41,10 @@ def syndromes(t,SCV):                       # calculate syndromes given t and th
 
 def BM_algorithm(S):                        # BM algo as implemented from whiteboard notes
     Lx, Lpx = [1],[1]                       # initialize L(x) = Lp(x) = 1
-    ne,dp,m = 0,1,1
+    ne,dp,m = 0,1,1                         # initialize num_errors = 0, prev. discrepancy = 1, iteration mark = 1
     for i in range(len(S)):
-        d = S[i]                        
-        for k in range(1,ne+1):
+        d = S[i]                            # initialize di = S[i]
+        for k in range(1,ne+1):             # for k = 1 to ne
             d = sum(d,mult(Lx[k],S[i-k]))   # di = S[i] + Summation(Lx[k],S[i-k]) from k = 1 to ne
         if d == 0:
             m += 1
@@ -58,33 +58,33 @@ def BM_algorithm(S):                        # BM algo as implemented from whiteb
                 if k < len(Lx):             # L(x) = L(x) - (d/dp) x^m Lp(x)
                     Lx[k] = sum(Lx[k],-sLpx[k])
                 else:
-                    Lx += [-sLpx[k] % 929]
+                    Lx += [-sLpx[k] % 929]  # L(x) = 0 - (d/dp) x^m Lp(x)
             if 2*ne <= i:
-                Lpx = temp
-                ne = i + 1 - ne
-                dp = d
+                Lpx = temp                  # copy old L(x) to Lp(x)
+                ne = i + 1 - ne             # update num_errors
+                dp = d                      # update previous discrepancy with new one
                 m = 1
             else:
                 m += 1
-    return ne,Lx                            # return number of errors, L(x)
+    return ne,Lx                            # return num_errors, L(x)
 
 def find_roots(Lx):                         # find roots of L(x) = 1 + L0 x^1 + ... using Chien Search
     Le = copy.deepcopy(Lx)                  # copy coeffs of L(x) to Le
     Tx = [pow(3,i) for i in range(len(Lx))] # calculate template polynomial T(x) = 1 + a^1 + a^2 + ...
-    root_idxs = []                          # the index is the exponent of the root a^x
-    root_vals = []                          # the value is a^x itself
-    root_no_inv = []
+    root_idxs = []                          # the index = exponent of the root a^x
+    root_vals = []                          # the value of a^x itself
+    root_no_inv = []                        # also take note of non-inverted roots (for error polynomial)
     for i in range(0,928):
         elp_val = 0
         for j in range(len(Le)):            # elp_val = Summation of the current Le
             elp_val = sum(elp_val,Le[j])
-            Le[j] *= Tx[j]                  # update the values of Le *= Tx as we sweep
+            Le[j] *= Tx[j]                  # update the values of Le *= T(x) as we sweep
         if elp_val == 0:                    # then i is root
-            inv = -i % 928                  # get inverse of i (*not sure why mod 928 and not 929)
+            inv = -i % 928                  # get inverse of i (distance from 928)
             root_idxs.append(inv)           # inverse is the exponent/index
             root_vals.append(pow(3,inv))    # evaluate raw value of a^inv
             root_no_inv.append(pow(3,i))    # also get the non-inverted root values
-    return root_idxs, root_vals, root_no_inv        # return root indices, raw root values
+    return root_idxs, root_vals, root_no_inv                # return root indices, raw root values, and non-inverted roots
 
 def error_poly(S,error_locator,root_no_inv,ne):             # calculate error polynomial from error locator
     dL = []
@@ -121,7 +121,7 @@ def correct_message(SCV,e_coeffs,root_idxs):                # Compute true messa
 ################# Main function #######################
 
 def error_correction(ecc_count,SCV):
-    t = int(ecc_count / 2)
+    t = int(ecc_count / 2)                                          # t = E/2
     
     S_sum, S = syndromes(t,SCV)                                     # get syndromes
     print("Syndromes:",S)                                           # for debugging

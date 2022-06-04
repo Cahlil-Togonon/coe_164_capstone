@@ -4,9 +4,8 @@
 3. ~~compute true message (`correct_message()`)~~
 4. ~~fix `error_poly()`~~
 5. ~~working code for sample inputs~~
-6. working code for Online Judge (pain)
+6. ~~working code for Online Judge~~ (yay)
 
 `python main.py input.txt output.txt`
 
-status:
-correct ecc, wrong decoder for OJ
+**Status**: working in OJ

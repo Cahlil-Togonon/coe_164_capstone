@@ -1,6 +1,11 @@
 import copy
 import sys
 
+########################################################
+
+# Error Correction: Adrian Cahlil Eiz G. Togonon, 2019-11731
+# Barcode Decoding: Alquea Pauline x. Macatangay, 2019-xxxxx
+
 ################ Helper functions ######################
 
 def pow(base,power):                # power with mod 929 every step
@@ -111,13 +116,13 @@ def error_poly(S,error_locator,root_no_inv,ne):             # calculate error po
         e_coeffs.append(mult(-Ox_val,dL_val))               # e_coeff = -(Ox_val/dL_val)
     return e_coeffs                                         # return error polynomial
 
-def correct_message(SCV,e_coeffs,root_idxs):                # Compute true message
+def correct_message(SCV,e_coeffs,root_idxs):                        # Compute true message
     corrected_SCV = copy.deepcopy(SCV)
-    N = len(corrected_SCV)                                  # get length of SCV
+    N = len(corrected_SCV)                                          # get length of SCV
     for i in range(len(root_idxs)):
-        idx = N - root_idxs[i] - 1                          # index to correct is from the right starting from index 0
+        idx = N - root_idxs[i] - 1                                  # index to correct is from the right starting from index 0
         corrected_SCV[idx] = sum(corrected_SCV[idx],-e_coeffs[i])   # subtract msg with e(x)
-    return corrected_SCV                                    # return corrected SCV
+    return corrected_SCV                                            # return corrected SCV
 
 ################# Main Error Correction function #######################
 
@@ -125,19 +130,19 @@ def error_correction(ecc_count,SCV):
     t = int(ecc_count / 2)                                          # t = E/2
     
     S_sum, S = syndromes(t,SCV)                                     # get syndromes
-    print("Syndromes:",S)                                           # for debugging
+    # print("Syndromes:",S)                                         # for debugging
     # if not S_sum:
     #     return 0, msg_SCV
 
     num_errors, error_locator = BM_algorithm(S)                     # get error locator and number of errors using Berlekamp-Massey Algorithm
-    print("Error Locator:",error_locator)                           # for debugging
+    # print("Error Locator:",error_locator)                         # for debugging
 
     root_idxs, root_vals, root_no_inv = find_roots(error_locator)   # get root_idxs, root_vals
-    print("root_idxs:",root_idxs)                                   # for debugging
-    print("root_vals:",root_vals)                                   # for debugging
+    # print("root_idxs:",root_idxs)                                 # for debugging
+    # print("root_vals:",root_vals)                                 # for debugging
 
     e_coeffs = error_poly(S,error_locator,root_no_inv,num_errors)   # get e_coeffs polynomial
-    print("E_coeffs:",e_coeffs)                                     # for debugging
+    # print("E_coeffs:",e_coeffs)                                   # for debugging
 
     corrected_SCV = correct_message(SCV,e_coeffs,root_idxs)         # get true message
 
@@ -202,7 +207,7 @@ if __name__ == '__main__':
 
         ecc_count = int(2**(ecc_level+1))                               # ecc_count = 2^(ecc_level + 1)
         
-        print(f"Case #{t+1}:") # for debugging purposes
+        # print(f"Case #{t+1}:") # for debugging purposes
         num_errors,corrected_SCV = error_correction(ecc_count,SCV)      # call error correction
         
         error_SCV = corrected_SCV[-ecc_count:]                          # get error part of SCV

@@ -4,7 +4,7 @@ import sys
 ########################################################
 
 # Error Correction: Adrian Cahlil Eiz G. Togonon, 2019-11731
-# Barcode Decoding: Alquea Pauline x. Macatangay, 2019-xxxxx
+# Barcode Decoding: Alquea Pauline A. Macatangay, 2019-06538
 
 ################ Helper functions ######################
 

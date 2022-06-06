@@ -195,12 +195,11 @@ def decoder(data_SCV):
     return decoded                                  # return decoded message
 
 if __name__ == '__main__':
-    f = open(sys.argv[1],"r")
-    input_stream = f.read().splitlines()            # split whole input text file (without \n)
-    f.close()
+    input_stream = []
+    for line in sys.stdin:
+        input_stream.append(line.strip())                               # split whole input text file (without \n)
 
-    T = int(input_stream.pop(0))                    # get first value which is T, the number of test cases
-    f = open(sys.argv[2],"w")
+    T = int(input_stream.pop(0))                                        # get first value which is T, the number of test cases
     for t in range(T):
         ecc_level,N = [int(i) for i in input_stream.pop(0).split()]     # get E (ecc_level) and N
         SCV = [int(i) for i in input_stream.pop(0).split()]             # get SCV array
@@ -224,7 +223,6 @@ if __name__ == '__main__':
         for val in corrected_SCV:                                       # line formatting:
             line += f"{val} "                                           # (num_errors corrected_SCV)
 
-        f.writelines(f"Case #{t+1}:\n")                                 # write test case number, line, and decoded message
-        f.writelines(line[:-1]+"\n")
-        f.writelines(decoded+'\n')
-    f.close()
+        print(f"Case #{t+1}:", end='\n')                                # write test case number, line, and decoded message
+        print(line[:-1], end='\n')
+        print(decoded, end='\n')
